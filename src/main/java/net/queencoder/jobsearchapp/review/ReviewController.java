@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/companies/{companyId}")
+@RequestMapping("api/v1/companies/{companyId}")
 @RequiredArgsConstructor
 public class ReviewController {
     
@@ -18,6 +18,8 @@ public class ReviewController {
 
     @GetMapping("/reviews")
     public ResponseEntity<List<Review>> getAllReviews(@PathVariable Long companyId){
+        System.out.println("The company ID");
+        System.out.println(companyId);
         return new ResponseEntity<List<Review>>(reviewService.getAllReviews(companyId), HttpStatus.OK);
     }
 

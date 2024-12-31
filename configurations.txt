@@ -154,3 +154,139 @@ dpage/pgadmin4
 docker compose up -d
 docker logs postgres_container
 
+===== END of PostgreSQL ===
+
+===== Microservices ===
+
+Structure
+-Services ports
+Company 8081
+Jobs 8082
+Reviews 8083
+
+New name jobms
+dependencies
+-web
+-jpa
+-postgresql driver
+
+=== END OF POSTGRESQL ===
+
+=== START OF MICROSERVICES ===
+
+- SERVICES Communications
+- Synchronous - HTTP
+- asynchronous - RabbitMQ, Kaffa
+
+-RestTemplate
+
+- Service Registry
+== Benefits
+- Dynamic Service Discovery
+- Load Balancing
+- Fault Tolerance and Resilience
+- Scalability and Elasticity
+- Service Monitoring and Health Checks
+ === Type
+ Spring Cloud Eureka
+
+=== ZIPKIN ===
+
+ zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - 9411:9411
+    networks:
+        - postgres
+
+
+ # Maven commands
+
+ - mvn clean = clean target directory where all filse are generated
+ - mvn package = compile and package your code into a jar file
+ - mvn clean package = combination of the two commands above
+
+ To package your file using maven wrapper - use
+ - ./mvnw package
+
+ /target/companyms-0.0.1-SNAPSHOT.jar
+
+ You can run the executable file
+ java -jar target/companyms-0.0.1-SNAPSHOT.jar
+
+ Springboot profiles
+
+ # Build Service Registry Docker Image
+ This is using the inbuilt springboot docker build. Note we did not create any docker image
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/servicereg"
+ To push to remote docker registry
+ docker push juliettegodyere/servicereg
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/companyms"
+ ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=juliettegodyere/companyms
+  docker push juliettegodyere/companyms
+
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/reviewms"
+ docker push juliettegodyere/reviewms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/jobms"
+ docker push juliettegodyere/jobms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/gateway-ms"
+ docker push juliettegodyere/gateway-ms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/config-server-ms"
+ docker push juliettegodyere/config-server-ms
+
+
+ # Kubernetes
+
+ ## Create Pod
+ ensure you are inside the folder where first-pod.yaml is located
+ kubectl apply -f first-pod.yaml
+
+ # get the list of pods
+ kubectl get pods
+
+ # Get live status update - w stands for watch
+ kubectl get pods -w
+
+ # Create a service
+ kubectl apply -f first-service.yaml
+ kubectl get services
+
+ Exposing Your services
+ Types of Services
+
+ -> ClusterIP - When you don't specif your IP
+ -> NodePort - Makes the services from outside. Exposes the service externally
+ -> LoadBalancer - Used to expose your application to the outside world
+
+ # ReplicaSet
+ Why do you need Identical Pods?
+ -> High Availability
+ -> Load Balancing
+ -> Scaling
+ -> Rolling Updates
+ -> Service Discovery and Load Balancing
+
+kubectl get replicaset
+kubectl delete replicaset -all -all namespaces
+
+-- Used to login into the terminal of postgresql
+kubectl exec -it postgres-0 -- psql -U postgres
+exec - execute
+i - interactive
+t - terminal
+-- end of the command line option
+-U connect user admin
+
+For list of databases
+\l
+
+Open zipkin on the browser after deploying on k8s - A way to enable minikube to access services
+ minikube service zipkin --url
+
+

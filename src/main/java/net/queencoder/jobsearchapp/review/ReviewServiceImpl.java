@@ -2,6 +2,7 @@ package net.queencoder.jobsearchapp.review;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import net.queencoder.jobsearchapp.company.CompanyService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewServiceImpl implements ReviewService {
 
     public final ReviewRepository reviewRepository;
@@ -19,7 +21,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public List<Review> getAllReviews(Long companyId) {
         List<Review> reviews = reviewRepository.findByCompanyId(companyId);
-
+        System.out.println(reviews);
         return reviews;
     }
 
