@@ -30,7 +30,6 @@ import lombok.ToString;
 import net.queencoder.jobsearchapp.company.Company;
 
 
-@Getter
 @Setter
 @ToString
 @AllArgsConstructor

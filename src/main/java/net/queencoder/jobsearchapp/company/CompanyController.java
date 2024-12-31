@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.*;
 
 @RestController
-@RequestMapping("/api/v1/companys")
+@RequestMapping("/api/v1/companies")
 @AllArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;

@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
 import net.queencoder.jobsearchapp.job.Job;
+import net.queencoder.jobsearchapp.review.Review;
 
 @Getter
 @Setter
@@ -27,4 +28,7 @@ public class Company {
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Job> jobs;
+
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Review> reviews;
 }

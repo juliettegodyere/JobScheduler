@@ -23,7 +23,7 @@ public class JobServiceImp implements JobService{
     @Transactional
     public Job createJob(JobDto jobDto){
 
-        Optional<Company> company = companyRepository.findByName(jobDto.getCompany().getName());
+        Optional<Company> company = companyRepository.findById(jobDto.getCompany().getId());
         log.info("Dto {}", company);
 
         Job job = new Job();

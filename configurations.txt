@@ -1,0 +1,292 @@
+-- Docker containerisation using spring-boot-maven-plugin configurations
+
+The spring-boot-maven-plugin makes it straightforward to containerize a Spring Boot application. Here’s a step-by-step guide:
+
+1. Add the Plugin to Your pom.xml
+
+Ensure you include the spring-boot-maven-plugin in your pom.xml under the <build> section.
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>3.1.3</version> <!-- Use the version that matches your Spring Boot version -->
+            <configuration>
+                <image>
+                    <name>juliettegodyere/job-search-app:tag</name>
+                </image>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
+Run the following Maven command to build and containerize the application:
+
+./mvnw spring-boot:build-image
+
+This will:
+
+	1.	Package your Spring Boot application into a JAR file.
+	2.	Use the default paketo-buildpacks to create a Docker image.
+
+Verify the Docker Image
+
+After the command completes, verify that the Docker image has been created:
+docker images
+
+Run the Docker Image
+
+Run your Docker container with the created image:
+docker run -p 8080:8080 your-dockerhub-username/your-application-name:tag
+
+ Optional: Push the Image to a Registry
+
+If you want to share your image, push it to Docker Hub or another container registry:
+docker login
+docker push your-dockerhub-username/your-application-name:tag
+
+DETAILED DESCRIPTION
+In string boot you can create docker image without explicitly creating a docker file. You can
+achieve this by using the "spring-boot-maven-plugin" in the plugin section in your pom.xml file.
+How does this work? It uses the cloud native buildpacks it is designed to build docker images from
+the source code without the need of a docker file. If you are using maven-plugin, you are already using
+cloud native buildpacks under the hood.
+The Spring boot maven plugin is configured to trigger the cloud native plugin - It packages your application
+into a jar file first before it hands it off to the build pack it will then take it ahead from there
+Layering - Buildpacks uses layering to build separate parts of the docker images and they call it
+layers. for example, one layer may have the JVM, and another layer can contain another application
+dependencies and another layer can have the application itself.
+Paketo Buildpack  - the springboot team works closely with the Paketo buildpack to ensure excellent
+support for springboot application. These are implementations of cloud native build pack specifications
+They provide JVM and other dependencies needed to compile springboot applications into docker image.
+Then we have the result which is the docker image which can run in any system.
+
+HOW TO GO ABOUT THIS
+./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/jobappimage"
+
+Maven goal - spring-boot:build-image
+-D flag is used to define the system property
+
+docker push juliettegodyere/jobappimage
+--if you get access denied
+docker login
+enter your username and password
+docker push juliettegodyere/job-search-app:jobSearchApp
+Check your repository and your image will be there
+
+
+DOCKER COMMANDS
+
+docker pull <username/image> - Used to pull images
+docker push <username/image> - Used to pull images
+docker run -it -d -p <host-post>:<container-port> —name <name> <image>
+-it = input and output of interactive console
+-d = detached mode
+-p = port mapping
+
+docker stop <container-id/container-name
+docker start <container-id/container-name
+docker rm <container-id/container-name  - used to remove stopped container
+docker rmi <image-id/image-name - Used to remove images fro local storage
+docker ps - used to get running images
+docker ps -a
+docker images - List all images on the host
+docker build -t <username/image> .
+The dot specifies the current directory
+
+docker logs <container-name/container-id
+docker inspect <container-name/container-id
+
+To run the job app - We should have this image on our local machine but if we don't have it
+it can be pulled from the repository.
+docker run -d -p 8080:8080 juliettegodyere/job-search-app:jobSearchApp
+
+
+===END OF DOCKER DOCKER==
+
+=== START OF POSTGRESQL  DATABASE ==
+ - Docker networks allows a communication between multiple docker containers. It's a network that works
+ with docker containers
+
+ docker run -d --name db -e POSTGRES_PASSWORD=test postgres
+ docker run -d --name pgadmin -e PGADMIN_DEFAULT_EMAIL="admin@ADMIN.COM" -e PGADMIN_DEFAULT_PASSWORD="admin" dpage/pgadmin4:latest
+-- Check for connection - If you can communicate across containers
+docker exec -it pgadmin ping db
+You should get an error because there is no communication between the two containers
+
+docker rm  pgadmin db
+
+docker network create my-network
+-- if you get an error that the network already exist
+docker network ls
+docker network rm my-network
+docker network create my-network
+docker run -d --name db --network my-network -e POSTGRES_PASSWORD=test postgres
+docker run -d --name pgadmin --network my-network -e PGADMIN_DEFAULT_EMAIL="admin@ADMIN.COM" -e PGADMIN_DEFAULT_PASSWORD="admin" dpage/pgadmin4:latest
+docker exec -it pgadmin ping db
+This illustrates that when containers are in the same networks there can communicate with each other
+Docker networks are amazing tools to help you communicate across containers
+
+Updated command
+docker run -d \
+ --name postgres_container \
+-e POSTGRES_USER=postgres \
+-e POSTGRES_PASSWORD=admin \
+-e PGDATA=/data/postgres \
+-v postgres:/data/postgres \
+-p 5432:5432 \
+ --network my-network \
+ —restart unless-stopped \
+postgres
+
+docker run -d \
+ --name pgadmin_container \
+-e PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.com \
+-e PGADMIN_DEFAULT_PASSWORD=admin \
+-e PGADMIN_CONFIG_SERVER_MODE= false
+-v pgadmin:/var/lib/pgadmin \
+-p 5050:80 \
+ --network my-network \
+ —restart unless-stopped \
+dpage/pgadmin4
+
+docker compose up -d
+docker logs postgres_container
+
+===== END of PostgreSQL ===
+
+===== Microservices ===
+
+Structure
+-Services ports
+Company 8081
+Jobs 8082
+Reviews 8083
+
+New name jobms
+dependencies
+-web
+-jpa
+-postgresql driver
+
+=== END OF POSTGRESQL ===
+
+=== START OF MICROSERVICES ===
+
+- SERVICES Communications
+- Synchronous - HTTP
+- asynchronous - RabbitMQ, Kaffa
+
+-RestTemplate
+
+- Service Registry
+== Benefits
+- Dynamic Service Discovery
+- Load Balancing
+- Fault Tolerance and Resilience
+- Scalability and Elasticity
+- Service Monitoring and Health Checks
+ === Type
+ Spring Cloud Eureka
+
+=== ZIPKIN ===
+
+ zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - 9411:9411
+    networks:
+        - postgres
+
+
+ # Maven commands
+
+ - mvn clean = clean target directory where all filse are generated
+ - mvn package = compile and package your code into a jar file
+ - mvn clean package = combination of the two commands above
+
+ To package your file using maven wrapper - use
+ - ./mvnw package
+
+ /target/companyms-0.0.1-SNAPSHOT.jar
+
+ You can run the executable file
+ java -jar target/companyms-0.0.1-SNAPSHOT.jar
+
+ Springboot profiles
+
+ # Build Service Registry Docker Image
+ This is using the inbuilt springboot docker build. Note we did not create any docker image
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/servicereg"
+ To push to remote docker registry
+ docker push juliettegodyere/servicereg
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/companyms"
+ ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=juliettegodyere/companyms
+  docker push juliettegodyere/companyms
+
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/reviewms"
+ docker push juliettegodyere/reviewms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/jobms"
+ docker push juliettegodyere/jobms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/gateway-ms"
+ docker push juliettegodyere/gateway-ms
+
+ ./mvnw spring-boot:build-image "-Dspring-boot.build-image.imageName=juliettegodyere/config-server-ms"
+ docker push juliettegodyere/config-server-ms
+
+
+ # Kubernetes
+
+ ## Create Pod
+ ensure you are inside the folder where first-pod.yaml is located
+ kubectl apply -f first-pod.yaml
+
+ # get the list of pods
+ kubectl get pods
+
+ # Get live status update - w stands for watch
+ kubectl get pods -w
+
+ # Create a service
+ kubectl apply -f first-service.yaml
+ kubectl get services
+
+ Exposing Your services
+ Types of Services
+
+ -> ClusterIP - When you don't specif your IP
+ -> NodePort - Makes the services from outside. Exposes the service externally
+ -> LoadBalancer - Used to expose your application to the outside world
+
+ # ReplicaSet
+ Why do you need Identical Pods?
+ -> High Availability
+ -> Load Balancing
+ -> Scaling
+ -> Rolling Updates
+ -> Service Discovery and Load Balancing
+
+kubectl get replicaset
+kubectl delete replicaset -all -all namespaces
+
+-- Used to login into the terminal of postgresql
+kubectl exec -it postgres-0 -- psql -U postgres
+exec - execute
+i - interactive
+t - terminal
+-- end of the command line option
+-U connect user admin
+
+For list of databases
+\l
+
+Open zipkin on the browser after deploying on k8s - A way to enable minikube to access services
+ minikube service zipkin --url
+
+
